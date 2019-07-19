@@ -1,0 +1,315 @@
+<html>
+<head>
+<style>
+body { font-family:Arial; }
+.hide { display:none; }
+.statTable td, .statTable th {
+  padding:.2em .5em;
+}
+
+#input, #result { float:left; margin-right:1em; }
+
+#input textarea, #input input { font-size:14px; font-family:monospace; }
+#responses { 
+  font-size:12px; 
+  font-family:monospace; 
+  width:300px;
+}
+</style>
+
+<script>
+function displayResult(jsonstr) {
+  var el;
+  var result = JSON.parse(jsonstr);
+  var out = '';
+  console.log(result);
+
+  document.querySelector('#result').classList.remove('hide');
+
+  // PERSONS
+  out = '';
+  el = document.querySelector('#personStats tbody');
+  stats = result.personStats.sort(function (x,y) { return x.theta>y.theta?-1:1; });
+  stats.forEach( function(rec) {
+    out+='<tr>';
+    out+='<td>'+(rec.index+1)+'</td>';
+    out+='<td>'+(rec.score||'0')+'</td>';
+    out+='<td>'+(rec.count||'0')+'</td>';
+    out+='<td>'+(rec.theta||0).toFixed(2)+'</td>';
+    out+='<td>'+(rec.thetaZ||0).toFixed(2)+'</td>';
+
+    if (rec.tags.indexOf('minimum')>=0) {
+      out+='<td colspan="4">Minimum measure</td>';
+    } 
+    else if (rec.tags.indexOf('maximum')>=0) {
+      out+='<td colspan="4">Maximum measure</td>';
+    } 
+    else {
+      out+='<td>'+(rec.infit||0).toFixed(2)+'</td>';
+      out+='<td>'+(rec.infitZ||0).toFixed(2)+'</td>';
+      out+='<td>'+(rec.outfit||0).toFixed(2)+'</td>';
+      out+='<td>'+(rec.outfitZ||0).toFixed(2)+'</td>';
+    }
+
+    out+='</tr>';
+  });
+  el.innerHTML = out;
+
+  // ITEMS
+  out = '';
+  tbody = document.querySelector('#itemStats tbody');
+  stats = result.itemStats.sort(function (x,y) { return x.difficulty>y.difficulty?-1:1; });
+  stats.forEach( function(rec) {
+    out+='<tr>';
+    out+='<td>'+(rec.index+1)+'</td>';
+    out+='<td>'+(rec.score||'0')+'</td>';
+    out+='<td>'+(rec.count||'0')+'</td>';
+    out+='<td>'+(rec.difficulty||0).toFixed(2)+'</td>';
+    out+='<td>'+(rec.difficultyZ||0).toFixed(2)+'</td>';
+
+    if (rec.tags.indexOf('minimum')>=0) {
+      out+='<td colspan="4">Minimum measure</td>';
+    } 
+    else if (rec.tags.indexOf('maximum')>=0) {
+      out+='<td colspan="4">Maximum measure</td>';
+    } 
+    else {
+      out+='<td>'+(rec.infit||0).toFixed(2)+'</td>';
+      out+='<td>'+(rec.infitZ||0).toFixed(2)+'</td>';
+      out+='<td>'+(rec.outfit||0).toFixed(2)+'</td>';
+      out+='<td>'+(rec.outfitZ||0).toFixed(2)+'</td>';
+    }
+
+    out+='</tr>';
+  });
+  tbody.innerHTML = out;
+
+  // QUALITY
+  out = '';
+  tbody = document.querySelector('#qualityStats tbody');
+  stats = result.qualityStats;
+  {
+    out+='<tr>'
+          +'<th>Person</th>'
+          +'<td>'+(stats.all.person.separation.toFixed(2))+'</td>'
+          +'<td>'+(stats.all.person.reliability.toFixed(2))+'</td>'
+          +'<td>'+(stats.nonExtreme.person.separation.toFixed(2))+'</td>'
+          +'<td>'+(stats.nonExtreme.person.reliability.toFixed(2))+'</td>'
+        +'</tr>';
+    out+='<tr>'
+          +'<th>Item</th>'
+          +'<td>'+(stats.all.item.separation.toFixed(2))+'</td>'
+          +'<td>'+(stats.all.item.reliability.toFixed(2))+'</td>'
+          +'<td>'+(stats.nonExtreme.item.separation.toFixed(2))+'</td>'
+          +'<td>'+(stats.nonExtreme.item.reliability.toFixed(2))+'</td>'
+        +'</tr>';
+  }
+  tbody.innerHTML = out;
+
+  // ITERATIONS
+  out = '';
+  tbody = document.querySelector('#iterationHistory tbody');
+  stats = result.iterationHistory;
+  stats.forEach( function(rec,i) {
+    out+='<tr>';
+    out+='<td>'+(i+1)+'</td>';
+    out+='<td>'+(rec.delta||'-')+'</td>';
+    out+='<td>'+(rec.loglikelihood||'-')+'</td>';
+    out+='</tr>';
+  });
+  tbody.innerHTML = out;
+}
+
+function doSubmit() {
+  var inputs = document.querySelectorAll('#input input');
+  var responses = document.querySelector('#responses');
+
+//   var data = new FormData();
+//   inputs.forEach(function(field) {
+//     data.append(field.name, field.value);
+//   });
+//   data.append('responses', responses.value);
+
+  var data = {}
+  inputs.forEach(function(field) {
+    data[field.name]=field.value;
+  });
+  data.responses=responses.value;
+
+  ajaxSend('/irt', JSON.stringify(data), displayResult)
+}
+
+function ajaxSend(url, postdata, callback) {
+  var xhr = new XMLHttpRequest();
+//   var params = 'orem=ipsum&name=binny';
+  xhr.open('POST', url);
+
+  // Send the proper header information along with the request
+//   xhr.setRequestHeader('Content-type', 'multipart/form-data');
+//   xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  xhr.setRequestHeader('Content-type', 'application/json');
+
+  xhr.addEventListener('load', function() {
+    callback(this.responseText);
+  });
+  xhr.send(postdata);
+  return false;
+}
+
+
+function auto_grow(ta) {
+  ta.style.height = "5px";
+  ta.style.height = (ta.scrollHeight+10)+"px";
+
+  // guess personCount and itemCount from textarea col, row
+  var buf = ta.value;
+  var rows = buf.split('\n').filter(row=>row.trim());
+  var personCount = rows.length;
+  var itemCount = rows.reduce((acc,row)=>{ var w = row.trim().length; return w>acc?w:acc; }, 0);
+
+  document.querySelector('#personCount').value = ''+personCount;
+  document.querySelector('#itemCount').value = ''+itemCount;
+}
+
+window.addEventListener('load',function(){
+  auto_grow(document.querySelector('#responses'));
+});
+</script>
+</head>
+
+<body>
+<h1>Rasch Engine</h1>
+
+<div id="input">
+  <h2>Input</h2>
+  <div>Max. iteration: <input type="text" name="maxIter" value="7"/></div>
+  <div>Convergence: <input type="text" name="conv" value="0.01"/></div>
+  <div>
+    Person count: <input type="text" id="personCount" name="personCount" size="3" maxlength="3" value="35" disabled/>
+    Item count: <input type="text" id="itemCount" name="itemCount" size="3" maxlength="3" value="18" disabled/>
+  </div>
+  <div>Responses:<br/>
+<textarea id="responses" onkeyup="auto_grow(this)" name="responses">
+111111100000000000
+111111111100000000
+111111111100100000
+111100100100000000
+111110101100000000
+111111111000000000
+111111111111100000
+111111111100000000
+111011111000000000
+111100101000000000
+111111111110100000
+111111111001000000
+111111111100000000
+111101111100000000
+111000000000000000
+111111111100000000
+111111111110000000
+111111111100000000
+111110011111000000
+111111111100100000
+111011000000000000
+111111111100000000
+111111111100000000
+111111111111101000
+111111001110010000
+111111100000000000
+111111111010000000
+111111111111000000
+111111111110000000
+111111111000000000
+111111111010000000
+111111111110100110
+111111111101010000
+111111111110000000
+111111111100110000
+</textarea>
+</div>
+<button onClick="doSubmit()">Submit</button>
+</div>
+
+<div class="hide" id="result">
+  <h2>Result</h2>
+
+  <h3>Quality Statistics</h3>
+  <table class="statTable" id="qualityStats" border="1">
+    <thead>
+      <tr>
+        <th rowspan="2"></th>
+        <th colspan="2">All</th>
+        <th colspan="2">Non-Extreme</th>
+      </tr>
+      <tr>
+        <th>Separation</th>
+        <th>Reliability</th>
+        <th>Separation</th>
+        <th>Reliability</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <h3>Person Statistics</h3>
+  <table class="statTable" id="personStats" border="1">
+    <thead>
+      <tr>
+        <th rowspan="2">Entry<br/>Number</th>
+        <th rowspan="2">Total<br/>Score</th>
+        <th rowspan="2">Total<br/>Count</th>
+        <th rowspan="2">Measure</th>
+        <th rowspan="2">Model<br/>S.E.</th>
+        <th colspan="2">Infit</th>
+        <th colspan="2">Outfit</th>
+      </tr>
+      <tr>
+        <th>Mnsq</th>
+        <th>Zstd</th>
+        <th>Mnsq</th>
+        <th>Zstd</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <h3>Item Statistics</h3>
+  <table class="statTable" id="itemStats" border="1">
+    <thead>
+      <tr>
+        <th rowspan="2">Entry<br/>Number</th>
+        <th rowspan="2">Total<br/>Score</th>
+        <th rowspan="2">Total<br/>Count</th>
+        <th rowspan="2">Measure</th>
+        <th rowspan="2">Model<br/>S.E.</th>
+        <th colspan="2">Infit</th>
+        <th colspan="2">Outfit</th>
+      </tr>
+      <tr>
+        <th>Mnsq</th>
+        <th>Zstd</th>
+        <th>Mnsq</th>
+        <th>Zstd</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <h3>Iteration History</h3>
+  <table class="statTable" id="iterationHistory" border="1">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Delta</th>
+        <th>Log Likelihood</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+</div>
+</body>
+</html>
