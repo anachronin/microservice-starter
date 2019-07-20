@@ -1,18 +1,43 @@
 package com.coto.sample;
 
-import java.util.ArrayList;
-import java.util.Formatter;
+// import java.util.ArrayList;
+// import java.util.Formatter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+// import java.util.*;
+import java.io.IOException;
 
 public class SampleApp {
-  public String request;
-//   public SampleRequest request;
+  private final long id;
+  private final String category;
 
-  public String getRequest() {
-     return this.request;
+  public PersonRecord person;
+
+  public SampleApp(String category, long id) {
+      this.category = category;
+      this.id = id;
   }
 
-  public void run(String request) {
-     this.request=request;
+  // get methods
+  public String getCategory() { return this.category; }
+  public long getId() { return this.id; }
+  public PersonRecord getPerson() { return this.person; }
+
+  // request parsing
+  public PersonRecord parseRequestJson(String json) {
+    ObjectMapper objectMapper = new ObjectMapper();
+    PersonRecord req = null;
+    try {
+      req = objectMapper.readValue(json, PersonRecord.class);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return req;
+  }
+
+  // run
+  public void processPerson(String json) {
+    this.person = parseRequestJson(json);
+    this.person.computeBirthYear();
   }
 
 }

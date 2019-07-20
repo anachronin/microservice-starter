@@ -1,16 +1,20 @@
 <html>
 <head>
 
+<style>
+.result_ { padding:3px; border:3px solid #999; }
+</style>
+
 <script>
 function ajaxSend(url, postdata, callback) {
   var xhr = new XMLHttpRequest();
-//   var params = 'orem=ipsum&name=binny';
-  xhr.open('POST', url);
+  xhr.open('POST', url, true);
 
   // Send the proper header information along with the request
+  // 'application/json' will parse correctly in backend using '@RequestBody Map<String,String> postParams'
+  xhr.setRequestHeader('Content-type', 'application/json');
 //   xhr.setRequestHeader('Content-type', 'multipart/form-data');
 //   xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-  xhr.setRequestHeader('Content-type', 'application/json');
 
   xhr.addEventListener('load', function() {
     callback(this.responseText);
@@ -19,20 +23,29 @@ function ajaxSend(url, postdata, callback) {
   return false;
 }
 
-function doSubmit() {
-  var inputs = document.querySelectorAll('#simpleForm input');
+function doSubmit(root) {
+  var url = document.querySelector(root + ' input[name=url]').value;
+  var inputs = document.querySelectorAll(root + ' .input_ input');
 
   var data = {}
   inputs.forEach(function(field) {
     data[field.name]=field.value;
   });
 
-  ajaxSend('/processForm', JSON.stringify(data), displayResult)
+  ajaxSend(url, JSON.stringify(data), 
+    function (result) {
+      var el = document.querySelector(root + ' .result_');
+      el.innerHTML = result;
+    }
+  )
 }
 
-function displayResult(result) {
-  var el = document.querySelector('#formResult');
-  el.innerHTML = result;
+function sampleAppSubmit() {
+  doSubmit('#sampleApp');
+}
+
+function requestWithParamsSubmit() {
+  doSubmit('#requestWithParams');
 }
 
 </script>
@@ -41,17 +54,40 @@ function displayResult(result) {
 <body>
 <h1>SpringBoot Microservice Starter</h1>
 
-<h2>Simple request</h2>
-<a href="/hello">Hello</a>
-
-<h2>Sample form post (using ajax)</h2>
-<div id="simpleForm">
-  <div>
-    Name: <input type="text" name="name" size="30" maxlength="30"/> 
-    Age: <input type="text" name="age" size="2" maxlength="2" value=""/>
-    <button onClick="doSubmit()">Submit</button>
-  </div>
-  Result: <span id="formResult">-</span>
+<div id="hello">
+  <h2>Simple request</h2>
+  <a href="/hello">Hello</a>
 </div>
+
+<div id="requestWithParams">
+  <h2>Request with Params</h2>
+  <p>Post to a path url using ajax with json post body</p>
+  <div>
+    Url: <input type="text" name="url" size="50" maxlength="50" value="/requestWithParams?id=9573&category=car""/> 
+  </div>
+  <div class="input_">
+    Color: <input type="text" name="color" size="10" maxlength="10" value="Blue"/> 
+    Weight: <input type="text" name="weight" size="4" maxlength="4" value="1800"/>
+    <button onClick="requestWithParamsSubmit()">Submit</button>
+  </div>
+  Result: 
+  <div class="result_">-</div>
+</div>
+
+<div id="sampleApp">
+  <h2>Sample App</h2>
+  <p>Post to a path url using ajax with json post body</p>
+  <div class="url_">
+    Url: <input type="text" name="url" size="50" maxlength="50" value="/sampleAppSubmit/person/302910"/> 
+  </div>
+  <div class="input_">
+    Name: <input type="text" name="name" size="30" maxlength="30" value="Busy Bee"/> 
+    Age: <input type="text" name="age" size="2" maxlength="2" value="12"/>
+    <button onClick="sampleAppSubmit()">Submit</button>
+  </div>
+  Result: 
+  <div class="result_">-</div>
+</div>
+
 </body>
 </html>
