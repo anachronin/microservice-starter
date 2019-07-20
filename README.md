@@ -5,4 +5,4 @@ Spring Boot microservice starter.
         $ mvn package
         $ java -jar target/sample-service-0.1.0.jar & 
 
-Browse to <code>http:/hostname:8080/index.html</code> - page let you try test-run the services.
+Browse to <code>http:/hostname:8080/index.html</code> - page let you test-run the services.
