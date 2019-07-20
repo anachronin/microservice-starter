@@ -1,4 +1,4 @@
-package com.coto.uservice.controller;
+package com.myco.uservice.controller;
 
 public class Greeting {
 

@@ -1,4 +1,4 @@
-package com.coto.sample;
+package com.myco.sample;
 
 // import java.util.ArrayList;
 // import java.util.Formatter;

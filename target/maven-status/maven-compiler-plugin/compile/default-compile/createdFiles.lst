@@ -1,5 +1,5 @@
-com/coto/uservice/controller/MyController.class
-com/coto/sample/PersonRecord.class
-com/coto/uservice/controller/MainApp.class
-com/coto/uservice/controller/Greeting.class
-com/coto/sample/SampleApp.class
+com/myco/uservice/controller/MainApp.class
+com/myco/sample/PersonRecord.class
+com/myco/uservice/controller/Greeting.class
+com/myco/sample/SampleApp.class
+com/myco/uservice/controller/MyController.class

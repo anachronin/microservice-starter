@@ -1,7 +1,7 @@
-package com.coto.uservice.controller;
+package com.myco.uservice.controller;
 
-import com.coto.sample.PersonRecord;
-import com.coto.sample.SampleApp;
+import com.myco.sample.PersonRecord;
+import com.myco.sample.SampleApp;
 
 import java.util.Map;
 

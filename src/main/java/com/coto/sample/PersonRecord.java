@@ -1,4 +1,4 @@
-package com.coto.sample;
+package com.myco.sample;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.*;
 import java.time.Year;
